@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -6,6 +9,7 @@ import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/login_model.dart';
 export '../models/login_model.dart';
@@ -27,8 +31,12 @@ class PatientDetailWidget extends StatefulWidget {
 class _PatientDetailWidgetState extends State<PatientDetailWidget> {
   late PatientDetailModel _model;
   late String _patientId = '';
+  late String _heartRate = ''; // Declare heart rate variable
+  late String _oxygenLevel = '';
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  late Timer _timer;
+  late int _fetchCount = 0;
 
   @override
   void initState() {
@@ -38,6 +46,13 @@ class _PatientDetailWidgetState extends State<PatientDetailWidget> {
     _model.textFieldFocusNode ??= FocusNode();
 
     fetchPatientId();
+    _timer = Timer.periodic(Duration(seconds: 1), (_) {
+      fetchPatientData();
+      if (_fetchCount >= 10) {
+        // Check if _fetchCount is 6
+        _timer.cancel(); // Cancel timer after 6 fetches
+      }
+    });
   }
 
   void fetchPatientId() async {
@@ -57,9 +72,34 @@ class _PatientDetailWidgetState extends State<PatientDetailWidget> {
     }
   }
 
+  Future<void> fetchPatientData() async {
+    final response = await http.get(Uri.parse('http://127.0.0.1:5000/data'));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      if (data.isNotEmpty) {
+        final Map<String, dynamic> latestData = data[_fetchCount % data.length];
+        setState(() {
+          _heartRate = latestData['heart_rate'].toString();
+          _oxygenLevel = latestData['oxygen_level'].toString();
+        });
+        _fetchCount++; // Move to the next pair
+
+        if (_fetchCount >= 10) {
+          // Check if _fetchCount is 10
+          _timer.cancel(); // Cancel timer after 6 fetches
+        }
+      } else {
+        // Handle empty data
+      }
+    } else {
+      // Handle error
+    }
+  }
+
   @override
   void dispose() {
     _model.dispose();
+    _timer.cancel();
     super.dispose();
   }
 
@@ -155,14 +195,14 @@ class _PatientDetailWidgetState extends State<PatientDetailWidget> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                              '98',
+                                              '$_oxygenLevel',
                                               style: FlutterFlowTheme.of(
                                                       context)
                                                   .bodyMedium
                                                   .override(
                                                     fontFamily: 'Inter',
                                                     color: Color(0xFF1C274C),
-                                                    fontSize: 45,
+                                                    fontSize: 34,
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                             ),
@@ -236,14 +276,14 @@ class _PatientDetailWidgetState extends State<PatientDetailWidget> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                              '60',
+                                              '$_heartRate',
                                               style: FlutterFlowTheme.of(
                                                       context)
                                                   .bodyMedium
                                                   .override(
                                                     fontFamily: 'Inter',
                                                     color: Color(0xFF1C274C),
-                                                    fontSize: 45,
+                                                    fontSize: 34,
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                             ),

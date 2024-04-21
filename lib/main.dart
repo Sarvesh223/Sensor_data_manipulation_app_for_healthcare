@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'pages/patient_details.dart';
 import 'pages/splashscreen.dart';
 import 'pages/splashscreen_02.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -28,7 +29,10 @@ class MyApp extends StatelessWidget {
             seedColor: const Color.fromARGB(255, 75, 58, 183)),
         useMaterial3: true,
       ),
-      home: SplashscreenWidget(),
+      home: PatientDetailWidget(
+        patientName: '',
+        patientSpecialty: '',
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
