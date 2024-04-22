@@ -91,6 +91,8 @@ dependencies:
   supabase_flutter: ^2.3.3
   sleek_circular_slider: ^2.0.1
   twilio_flutter: ^0.3.0
+  flutter_local_notifications: ^17.1.0
+  audioplayers: ^6.0.0
   
   
 

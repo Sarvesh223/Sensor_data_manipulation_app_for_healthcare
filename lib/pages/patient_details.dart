@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -37,6 +38,7 @@ class _PatientDetailWidgetState extends State<PatientDetailWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   late Timer _timer;
   late int _fetchCount = 0;
+  final AudioPlayer audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -85,8 +87,20 @@ class _PatientDetailWidgetState extends State<PatientDetailWidget> {
         _fetchCount++; // Move to the next pair
 
         if (_fetchCount >= 10) {
-          // Check if _fetchCount is 10
-          _timer.cancel(); // Cancel timer after 6 fetches
+          // Check if it's the 10th fetch
+          _timer.cancel(); // Cancel timer after 10 fetches
+
+          // Check heart rate and oxygen level
+          if (int.parse(_heartRate) > 100) {
+            // Show message and notification for high heart rate
+            _showAlertAndNotification(
+                'Need Urget Care', 'Please assist your patient');
+          }
+          if (int.parse(_oxygenLevel) < 65) {
+            // Show message and notification for low oxygen level
+            _showAlertAndNotification(
+                'Need Urget Care', 'Please assist your patient');
+          }
         }
       } else {
         // Handle empty data
@@ -94,6 +108,64 @@ class _PatientDetailWidgetState extends State<PatientDetailWidget> {
     } else {
       // Handle error
     }
+  }
+
+  void _showAlertAndNotification(String title, String message) async {
+    // Show alert dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Play beep sound if conditions are met
+    if (int.parse(_heartRate) > 100 || int.parse(_oxygenLevel) < 65) {
+      _playBeepSound();
+    }
+
+    // Show notification
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('app_icon');
+    final InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'healthcare_alerts', // Provide a unique channel ID here
+      'Healthcare Alerts', // Provide a unique channel name here
+
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0, // Notification ID
+      title, // Notification title
+      message, // Notification body
+      platformChannelSpecifics,
+    );
+  }
+
+  void _playBeepSound() async {
+    final result =
+        await audioPlayer.play(AssetSource('assets/images/beep_sound.mp3'));
   }
 
   @override
