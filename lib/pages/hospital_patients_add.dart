@@ -24,6 +24,7 @@ class AddingPatientDetailsWidget extends StatefulWidget {
 class _AddingPatientDetailsWidgetState
     extends State<AddingPatientDetailsWidget> {
   late AddingPatientDetailsModel _model;
+  DateTime _selectedDate = DateTime.now();
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -68,6 +69,21 @@ class _AddingPatientDetailsWidgetState
     _model.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedDate)
+      setState(() {
+        _selectedDate = picked;
+        _model.textController7.text =
+            "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}";
+      });
   }
 
   @override
@@ -527,6 +543,10 @@ class _AddingPatientDetailsWidgetState
                                       width: 2,
                                     ),
                                     borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  suffixIcon: IconButton(
+                                    onPressed: () => _selectDate(context),
+                                    icon: Icon(Icons.calendar_today),
                                   ),
                                 ),
                                 style: FlutterFlowTheme.of(context).bodyMedium,

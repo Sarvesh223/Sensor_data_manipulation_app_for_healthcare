@@ -29,10 +29,7 @@ class MyApp extends StatelessWidget {
             seedColor: const Color.fromARGB(255, 75, 58, 183)),
         useMaterial3: true,
       ),
-      home: PatientDetailWidget(
-        patientName: '',
-        patientSpecialty: '',
-      ),
+      home: SplashscreenWidget(),
       debugShowCheckedModeBanner: false,
     );
   }
